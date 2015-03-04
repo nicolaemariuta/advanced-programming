@@ -1,0 +1,52 @@
+class Observable {
+  new (value) {
+    set self.value = value;
+    set self.observers = nil();
+  }
+
+  addObserver (obj, cookie) {
+    set self.observers = cons(observer(obj, cookie), self.observers);
+  }
+
+  setValue (value) {
+    set self.value = value;
+    self.notifyObservers(self.observers);
+  }
+
+  notifyObservers (xs) {
+    match xs {
+      cons(x, xs) -> {
+        "Note - new xs shadows the old one";
+        match x {
+          observer(obj, cookie) -> {
+            obj.notify(cookie, self.value);
+          }
+        };
+        self.notifyObservers(xs);
+      }
+    };
+  }
+}
+
+class Observer {
+  notify(cookie, newval) {
+    "Changed:".printLn();
+    cookie.printLn();
+    "New value".printLn();
+    newval.printLn();
+  }
+}
+
+class Main {
+  new () {
+    set box = new Observable(0);
+    set obs1 = new Observer();
+    set obs2 = new Observer();
+    box.setValue(1);
+    box.addObserver(obs1, obs1());
+    box.setValue(2);
+    "".printLn();
+    box.addObserver(obs2, obs2());
+    box.setValue(3);
+  }
+}

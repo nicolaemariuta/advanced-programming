@@ -1,0 +1,16 @@
+class Fact {
+  fact (n) {
+    match n {
+      0 -> { 1; }
+      x -> { n * self.fact(n-1); }
+    };
+  }
+}
+
+class Main {
+  new () {
+    set f = new Fact();
+    f.fact(0).printLn();
+    f.fact(10).printLn();
+  }
+}

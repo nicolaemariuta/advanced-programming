@@ -1,0 +1,2 @@
+concat_Lists([],Res,Res) :-
+concat_Lists([H|T], OtherList,[H | Rest]) :- concat_lists(T, OtherList, Rest).

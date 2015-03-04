@@ -1,0 +1,67 @@
+After resubmission: Very fine.
+- Often you see Data.List being imported as 'L' and Data.Map as 'M'.
+- You could also have used modify in e.g. push: push a = modify $ \s -> s { stack = a : stack s }
+
+
+
+Please resubmit with the following change:
+- Don’t let your modules export more than they have to.
+- Every monadic action with type 'State -> MSM sometype' should be changed
+into 'MSM sometype'. In particular, push and newreg should probably be
+'Int -> MSM Bool'... since you use them in interpInst.
+
+Report:
+- Please discuss your tests; what kind of tests are they, how much do they
+cover. I'm not sure what an "out of this world" test is. Do you mean one that
+requires heroic effort?
+- You write some relevant questions in source code comments that are better
+suited for the report. For example, interp has type MSM (), yet you want to
+pop. So maybe that's not possible within interp, but simply writing 'interp
+>> stackPop', in the context where you wish this, should work very fine.
+
+Code:
+- Don’t let your modules export more than they have to.
+- runMSM does not have the desired return value. It should return the topmost
+element on the stack, not the complete machine state. When you make this kind
+of choice, make sure you argue why. Otherwise it will be interpreted as not
+being able to see the difference.
+- You don't use the types Error / ErrorType in your monad definition. If you e.g.
+had used the definition 'newtype MSM a = MSM (State -> Either Error (a, State))',
+then you could have an error state represented by the ErrorType type, rather than
+a string. With your current solution, ErrorType is redundant.
+- Your variable naming in the bind operator is slightly confusing. I would not
+call a variable 'rightOrLeft' if it's a function. I would probably call it
+'ma' to remind me what part of the type signature of (>>=) it belongs to.
+And calling something 'Left aState' when aState is not a state, but rather an
+error string, is downright confusing. Why not call it 'err' or similar?
+- A very fundamental misunderstanding: Let's say your MSM type covers
+over the type State -> Either String (a, State). Then it means that when
+you have an 'MSM a', you mostly have a function from State to (a, State)
+(let's ignore error handling). That means that your monadic actions should
+most likely not have the type 'State -> MSM something', since that would
+mean that you in fact have 'State -> State -> (a, State)' which is, in
+our case, completely redundant. The whole point of having 'MSM a' cover over
+a function from State to State is that we can get the function argument
+implicitly through the 'get' action (like the Reader monad). Ideally, you should be able to write:
+dup = do { x <- stackPop; stackPush x; stackPush x } (assuming stackPush
+and stackPop only change the stack and have built-in error handling).
+- For curiosity, since 'Either a' is itself a monad, you chould have shortened
+the 'Monad MSM' instance using do-notation:
+
+    (MSM ma) >>= func = MSM $ \ st -> do (a, st') <- ma st
+                                         let MSM mb = func a
+                                         mb st'
+
+here, the case 'Left err -> Left err' is handled implicitly. If you had
+used record-style to define the newtype, one could avoid the pattern matching
+and instead unwrap the 'MSM' constructor using its corresponding 'destructor':
+
+newtype MSM a = MSM { unMSM :: State -> Either Error (a, State) }
+instance Monad MSM where
+    (MSM ma) >>= func = MSM $ \ st -> do (a, st') <- ma st
+                                         unMSM (func a) st'
+
+
+Style:
+- The convention for monadic variants of regular functions it to call them e.g. 'traceM'.
+- Please keep a 80 or 100 character margin consistently. 150 chars is too long!

@@ -1,0 +1,14 @@
+class Main {
+  new () {
+    self.fact(0).printLn();
+    self.fact(10).printLn();
+  }
+
+  fact (n) {
+    match n {
+      0 -> { return 1; }
+    };
+    "This line should not be reached if n==0, because return ends the entire method.";
+    n * self.fact(n-1);
+  }
+}

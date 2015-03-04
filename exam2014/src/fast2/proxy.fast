@@ -1,0 +1,36 @@
+class Fact {
+  fact (n) {
+    match n {
+      0 -> { 1; }
+      x -> { n * self.fact(n-1); }
+    };
+  }
+}
+
+class Proxy {
+  new (c, log) {
+    set self.receiver = c;
+    set self.log = log;
+  }
+
+  receive (msg) {
+    match self.log {
+      true() -> {
+        "Method call:".printLn();
+        msg.printLn();
+      }
+    };
+    send(self.receiver, msg);
+  }
+}
+
+class Main {
+  new () {
+    set f = new Fact();
+    f.fact(10).printLn();
+    set p1 = new Proxy(f, false());
+    p1.fact(10).printLn();
+    set p2 = new Proxy(f, true());
+    p2.fact(10).printLn();
+  }
+}

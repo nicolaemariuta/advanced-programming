@@ -1,0 +1,57 @@
+{\rtf1\ansi\deff0\deftab480
+
+{\fonttbl
+{\f000 Courier New;}
+{\f001 Courier New;}
+{\f002 Courier New;}
+}
+
+{\colortbl
+\red000\green000\blue000;
+\red255\green255\blue255;
+\red000\green000\blue000;
+\red255\green255\blue255;
+\red000\green000\blue000;
+\red255\green255\blue255;
+}
+
+\f0\fs20\cb3\cf2 \highlight1\cf0 -module(svg).\par
+-export([pictureToSvg/1,\par
+\tab \tab  write_to_file/1]).\par
+\par
+\par
+%%--------------------------------------------------------------------\par
+%% @doc Create a string that is a SVG image representing the given picture.\par
+%%\par
+%% @spec pictureToSvg(Pic :: Picture) -> string()\par
+%%  Position = \{integer(), integer()\}\par
+%%  LineSeg  = \{Position, Position\}\par
+%%  Picture  = [LineSeg]\par
+%%\par
+%% @end\par
+%%--------------------------------------------------------------------\par
+pictureToSvg (Picture) ->\par
+    Points = lists:append(tuple_to_list(lists:unzip(Picture))),\par
+    \{Minx,Maxy\} = lists:foldl (fun(\{X1,Y1\}, \{X2,Y2\}) -> \par
+                                       \{min(X1, X2), max(Y1, Y2)\} end,\par
+                               hd(Points), tl(Points)),    \par
+    Xdir = 1 + if Minx < 0 -> abs(Minx); true -> 0 end,\par
+    Ydir = 1 + Maxy,\par
+    Lines = lists:map(fun svgline/1, Picture),\par
+    lists:flatten(["<svg xmlns=\\"\highlight5\cf4\ul http://www.w3.org/2000/svg\\\highlight1\cf0\ul0 ">",\par
+                   string_format("<g transform=\\"translate(~B, ~B) scale(1,-1)\\">~n", \par
+                                 [Xdir, Ydir]),\par
+                 Lines,\par
+                 "</g></svg>"]).\par
+                          \par
+\par
+svgline (\{\{X1,Y1\}, \{X2,Y2\}\}) ->\par
+    string_format("<line style=\\"stroke-width: 2px; stroke:black; fill:white\\"\\\par
+          \\ x1=\\"~B\\" x2=\\"~B\\" y1=\\"~B\\" y2=\\"~B\\" />~n" , [X1, X2, Y1, Y2]).\par
+\par
+string_format(S, L) ->\par
+    lists:flatten(io_lib:format(S, L)).\par
+\tab \par
+write_to_file(S) ->\par
+file:write_file("/Picture.svg", io_lib:fwrite("~p.\\n", [S])).\tab \par
+}

@@ -1,0 +1,7 @@
+G0 = [person(susan, [reed, jen, andrzej, jessica]),
+      person(reed, [tony, jessica]),
+      person(jessica, [jen]),
+      person(tony, []),
+      person(ken, [andrzej]),
+      person(jen, [tony, susan, jessica]),
+      person(andrzej, [susan, ken])].
